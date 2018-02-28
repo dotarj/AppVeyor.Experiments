@@ -10,6 +10,10 @@ image: Visual Studio 2017
 
 skip_tags: false
 
+branches:
+  only:
+    - master
+
 configuration: Release
 
 init:
