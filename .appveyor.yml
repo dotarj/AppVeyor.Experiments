@@ -18,7 +18,7 @@ init:
         $env:RELEASE_VERSION = $env:APPVEYOR_REPO_TAG_NAME
       }
       else {
-        $env:RELEASE_VERSION = "0.0.0+ci.sha.$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7)).build.$env:APPVEYOR_BUILD_NUMBER"
+        $env:RELEASE_VERSION = "0.0.0-ci.sha.$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7)).build.$env:APPVEYOR_BUILD_NUMBER"
       }
 
       Update-AppveyorBuild -Version $env:RELEASE_VERSION
