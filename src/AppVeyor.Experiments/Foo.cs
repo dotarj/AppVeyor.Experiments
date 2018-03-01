@@ -16,15 +16,5 @@ namespace AppVeyor.Experiments
         {
             return value;
         }
-
-        /// <summary>
-        /// Returns the given <paramref name="value"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The given <paramref name="value"/>.</returns>
-        public static string Baz(string value)
-        {
-            return value;
-        }
     }
 }
