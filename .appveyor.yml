@@ -5,6 +5,10 @@ environment:
     secure: AokfqnpAzmq0oo0qUsTHuZPuI5t4uFjlq6HKBKkatkQxvJV1YhDEtJHkV5VdMylM
   NUGET_API_KEY:
     secure: wwo1Vge8nhIs4OcyAqjec13lSYtTkJXZTGdWqCyv8cMbH+rX+Jgb5seRd2blI7mT
+  SONARCLOUD_TOKEN:
+    secure: U0tuEkqF1Ste7vfi3u+3WcyX1BbzgKbGyWmS7C6cckBIkEQoG/Vz/o+fj5GoTIaG
+  SONARCLOUD_GITHUB_TOKEN:
+    secure: BDsQj141y1xsOMP0GKcD1HIATQaKmKujesZG0511KEfyRL4MLXGk5eZXENTXC7eo
 
 image: Visual Studio 2017
 
@@ -15,10 +19,6 @@ branches:
     - master
 
 configuration: Release
-
-cache:
-  - C:\ProgramData\chocolatey\bin -> .appveyor.yml
-  - C:\ProgramData\chocolatey\lib -> .appveyor.yml
 
 init:
 - ps: |
@@ -33,13 +33,15 @@ init:
 
 install:
 - ps: |
-      Write-Host "STARTED installing code coverage tools" -ForegroundColor Magenta
+      Write-Host "STARTED installing tools" -ForegroundColor Magenta
 
       choco install opencover.portable
 
       choco install codecov
 
-      Write-Host "FINISHED installing code coverage tools" -ForegroundColor Magenta
+      choco install msbuild-sonarqube-runner -y
+
+      Write-Host "FINISHED installing tools" -ForegroundColor Magenta
 
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
@@ -58,6 +60,20 @@ before_build:
 
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
+- ps: |
+      Write-Host "STARTED beginning code analysis" -ForegroundColor Magenta
+
+      if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+          MSBuild.SonarQube.Runner.exe begin /k:"$env:APPVEYOR_PROJECT_NAME" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN" /d:"sonar.analysis.mode=preview" /d:"sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER" /d:"sonar.github.repository=$env:APPVEYOR_REPO_NAME" /d:"sonar.github.oauth=$env:SONARCLOUD_GITHUB_TOKEN" /v:$env:APPVEYOR_BUILD_VERSION
+      }
+      else {
+          MSBuild.SonarQube.Runner.exe begin /k:"$env:APPVEYOR_PROJECT_NAME" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN" /v:$env:APPVEYOR_BUILD_VERSION
+      }
+
+      Write-Host "FINISHED beginning generating code analysis" -ForegroundColor Magenta
+
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+
 build_script:
 - ps: |
       Write-Host "STARTED building project" -ForegroundColor Magenta
@@ -69,6 +85,15 @@ build_script:
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 after_build:
+- ps: |
+      Write-Host "STARTED ending code analysis" -ForegroundColor Magenta
+
+      MSBuild.SonarQube.Runner.exe end /d:"sonar.login=$env:SONARCLOUD_TOKEN"
+
+      Write-Host "FINISHED ending code analysis" -ForegroundColor Magenta
+
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+
 - ps: |
       If ($($env:VERIFY_STRONG_NAME) -eq "true") {
           Write-Host "STARTED verifying strong name" -ForegroundColor Magenta
