@@ -16,6 +16,10 @@ branches:
 
 configuration: Release
 
+cache:
+  - C:\ProgramData\chocolatey\bin -> .appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> .appveyor.yml
+
 init:
 - ps: |
       If ($($env:APPVEYOR_REPO_TAG) -eq "true") {
