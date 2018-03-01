@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Arjen Post. See LICENSE in the project root for license information.
-using System.Linq;
-
 namespace AppVeyor.Experiments
 {
     /// <summary>
@@ -15,7 +13,7 @@ namespace AppVeyor.Experiments
         /// <returns>The given <paramref name="value"/>.</returns>
         public static string Bar(string value)
         {
-            return new string(value.Reverse().ToArray());
+            return value;
         }
     }
 }
