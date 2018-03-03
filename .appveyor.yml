@@ -61,6 +61,20 @@ before_build:
 
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
+- ps: |
+      Write-Host "STARTED beginning code analysis" -ForegroundColor Magenta
+
+      if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=test/** /d:sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER /d:sonar.github.repository=$env:APPVEYOR_REPO_NAME /d:sonar.github.oauth=$env:SONARQUBE_GITHUB_TOKEN
+      }
+      else {
+          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=test/**
+      }
+
+      Write-Host "FINISHED beginning generating code analysis" -ForegroundColor Magenta
+
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+
 build_script:
 - ps: |
       Write-Host "STARTED building project" -ForegroundColor Magenta
@@ -109,22 +123,6 @@ test_script:
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
 
 after_test:
-- ps: |
-      Write-Host "STARTED beginning code analysis" -ForegroundColor Magenta
-
-      if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER /d:sonar.github.repository=$env:APPVEYOR_REPO_NAME /d:sonar.github.oauth=$env:SONARQUBE_GITHUB_TOKEN
-      }
-      else {
-          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml
-      }
-
-      Write-Host "FINISHED beginning generating code analysis" -ForegroundColor Magenta
-
-      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-
-      dotnet build -c $env:CONFIGURATION --no-restore -v m
-
 - ps: |
       Write-Host "STARTED generating code coverage report" -ForegroundColor Magenta
 
