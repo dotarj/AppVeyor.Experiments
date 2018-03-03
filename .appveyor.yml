@@ -5,9 +5,10 @@ environment:
     secure: AokfqnpAzmq0oo0qUsTHuZPuI5t4uFjlq6HKBKkatkQxvJV1YhDEtJHkV5VdMylM
   NUGET_API_KEY:
     secure: wwo1Vge8nhIs4OcyAqjec13lSYtTkJXZTGdWqCyv8cMbH+rX+Jgb5seRd2blI7mT
-  SONARCLOUD_TOKEN:
+  SONARQUBE_ORGANIZATION: dotarj-github
+  SONARQUBE_TOKEN:
     secure: U0tuEkqF1Ste7vfi3u+3WcyX1BbzgKbGyWmS7C6cckBIkEQoG/Vz/o+fj5GoTIaG
-  SONARCLOUD_GITHUB_TOKEN:
+  SONARQUBE_GITHUB_TOKEN:
     secure: BDsQj141y1xsOMP0GKcD1HIATQaKmKujesZG0511KEfyRL4MLXGk5eZXENTXC7eo
 
 image: Visual Studio 2017
@@ -39,7 +40,7 @@ install:
 
       choco install codecov
 
-      choco install msbuild-sonarqube-runner -y
+      choco install msbuild-sonarqube-runner
 
       Write-Host "FINISHED installing tools" -ForegroundColor Magenta
 
@@ -64,10 +65,10 @@ before_build:
       Write-Host "STARTED beginning code analysis" -ForegroundColor Magenta
 
       if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-          MSBuild.SonarQube.Runner.exe begin /k:"$env:APPVEYOR_PROJECT_NAME" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN" /d:"sonar.analysis.mode=preview" /d:"sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER" /d:"sonar.github.repository=$env:APPVEYOR_REPO_NAME" /d:"sonar.github.oauth=$env:SONARCLOUD_GITHUB_TOKEN" /v:$env:APPVEYOR_BUILD_VERSION
+          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER /d:sonar.github.repository=$env:APPVEYOR_REPO_NAME /d:sonar.github.oauth=$env:SONARQUBE_GITHUB_TOKEN
       }
       else {
-          MSBuild.SonarQube.Runner.exe begin /k:"$env:APPVEYOR_PROJECT_NAME" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN" /v:$env:APPVEYOR_BUILD_VERSION
+          MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN
       }
 
       Write-Host "FINISHED beginning generating code analysis" -ForegroundColor Magenta
@@ -88,7 +89,7 @@ after_build:
 - ps: |
       Write-Host "STARTED ending code analysis" -ForegroundColor Magenta
 
-      MSBuild.SonarQube.Runner.exe end /d:"sonar.login=$env:SONARCLOUD_TOKEN"
+      MSBuild.SonarQube.Runner.exe end /d:sonar.login=$env:SONARQUBE_TOKEN
 
       Write-Host "FINISHED ending code analysis" -ForegroundColor Magenta
 
