@@ -23,6 +23,19 @@ configuration: Release
 
 init:
 - ps: |
+      function Execute-Action {
+        param($description, $action)
+    
+        Write-Host "STARTED $description" -ForegroundColor Magenta
+
+        &$action
+
+        Write-Host "FINISHED $description" -ForegroundColor Magenta
+
+        if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+      }
+
+- ps: |
       If ($($env:APPVEYOR_REPO_TAG) -eq "true") {
         $env:RELEASE_VERSION = $env:APPVEYOR_REPO_TAG_NAME
       }
@@ -34,6 +47,8 @@ init:
 
 install:
 - ps: |
+      Execute-Action "aa" { Write-Host "ab" }
+
       Write-Host "STARTED installing tools" -ForegroundColor Magenta
 
       choco install opencover.portable
