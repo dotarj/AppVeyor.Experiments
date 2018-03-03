@@ -26,11 +26,11 @@ init:
       function Execute-Action {
           param($description, $action)
     
-          Write-Host "STARTED $description" -ForegroundColor Magenta
+          Write-Host (Get-Date).ToString("hh:mm:ss.fff") "STARTED $description" -ForegroundColor Magenta
 
           &$action
 
-          Write-Host "FINISHED $description" -ForegroundColor Magenta
+          Write-Host (Get-Date).ToString("hh:mm:ss.fff") "FINISHED $description" -ForegroundColor Magenta
 
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
       }
