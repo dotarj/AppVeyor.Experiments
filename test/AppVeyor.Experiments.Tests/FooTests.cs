@@ -16,7 +16,7 @@ namespace AppVeyor.Experiments.Tests
             var result = Foo.Bar(value);
 
             // Assert
-            Assert.Equal(value, result);
+            Assert.Equal("oof", result);
         }
     }
 }
