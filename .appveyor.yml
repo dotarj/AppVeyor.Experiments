@@ -37,29 +37,32 @@ init:
 
 - ps: |
       Execute-Action "updating build version" {
-         If ($($env:APPVEYOR_REPO_TAG) -eq "true") {
+         If ($env:APPVEYOR_REPO_TAG -eq $true) {
              $env:RELEASE_VERSION = $env:APPVEYOR_REPO_TAG_NAME
          }
          else {
              $env:RELEASE_VERSION = "0.0.0-ci.sha.$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7)).build.$env:APPVEYOR_BUILD_NUMBER"
          }
 
+         Write-Host "Build version:" $env:RELEASE_VERSION -ForegroundColor White
+
          Update-AppveyorBuild -Version $env:RELEASE_VERSION
+      }
+
+- ps: |
+      Execute-Action "updating path variable" {
+          $env:PATH = $env:PATH + ";C:/Program Files (x86)/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.7 Tools"
       }
 
 install:
 - ps: |
       Execute-Action "installing tools" {
-          choco install opencover.portable
-
-          choco install codecov
-
-          choco install msbuild-sonarqube-runner
+          choco install codecov msbuild-sonarqube-runner opencover.portable
       }
 
 dotnet_csproj:
   patch: true
-  file: src\$(APPVEYOR_PROJECT_NAME)\$(APPVEYOR_PROJECT_NAME).csproj
+  file: src/$(APPVEYOR_PROJECT_NAME)/$(APPVEYOR_PROJECT_NAME).csproj
   version: $(RELEASE_VERSION)
 
 before_build:
@@ -86,12 +89,10 @@ build_script:
 
 after_build:
 - ps: |
-      If ($($env:VERIFY_STRONG_NAME) -eq "true") {
+      If ($env:VERIFY_STRONG_NAME -eq $true) {
           Execute-Action "building project" {
-              $sn = "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.7 Tools\sn.exe"
-
-              foreach ($assembly in ls "src\$env:APPVEYOR_PROJECT_NAME\bin\$env:CONFIGURATION\*\$env:APPVEYOR_PROJECT_NAME.dll") {
-                  &$sn -vf $assembly
+              foreach ($assembly in ls "src/$env:APPVEYOR_PROJECT_NAME/bin/$env:CONFIGURATION/*/$env:APPVEYOR_PROJECT_NAME.dll") {
+                  sn.exe -vf $assembly
 
                   if ($LastExitCode -ne 0) { Break }
               }
@@ -100,13 +101,13 @@ after_build:
 
 - ps: |
       Execute-Action "creating NuGet package" {
-          dotnet pack src\$env:APPVEYOR_PROJECT_NAME -c $env:CONFIGURATION --no-restore --no-build --include-symbols --output ..\..\artifacts -v m
+          dotnet pack src/$env:APPVEYOR_PROJECT_NAME -c $env:CONFIGURATION --no-restore --no-build --include-symbols --output ../../artifacts -v m
       }
 
 test_script:
 - ps: |
       Execute-Action "running unit tests" {
-          dotnet test test\$env:APPVEYOR_PROJECT_NAME.Tests -c $env:CONFIGURATION --no-restore --no-build -v m
+          dotnet test test/$env:APPVEYOR_PROJECT_NAME.Tests -c $env:CONFIGURATION --no-restore --no-build -v m
       }
 
 after_test:
@@ -114,12 +115,12 @@ after_test:
       Execute-Action "generating code coverage report" {
           dotnet build -c $env:CONFIGURATION --no-restore -v m /p:codecov=true
 
-          OpenCover.Console.exe -target:"$env:XUNIT20\xunit.console.x86.exe" -targetargs:"test\$env:APPVEYOR_PROJECT_NAME.Tests\bin\$env:CONFIGURATION\net471\$env:APPVEYOR_PROJECT_NAME.Tests.dll -noshadow" -register:user -filter:"+[*]* -[$env:APPVEYOR_PROJECT_NAME.Tests]* -[$env:APPVEYOR_PROJECT_NAME.Samples]*" -hideskipped:All -output:".\coverage.xml"
+          OpenCover.Console.exe -target:"$env:XUNIT20/xunit.console.x86.exe" -targetargs:"test/$env:APPVEYOR_PROJECT_NAME.Tests/bin/$env:CONFIGURATION/net471/$env:APPVEYOR_PROJECT_NAME.Tests.dll -noshadow" -register:user -filter:"+[*]* -[$env:APPVEYOR_PROJECT_NAME.Tests]* -[$env:APPVEYOR_PROJECT_NAME.Samples]*" -hideskipped:All -output:"./coverage.xml"
       }
 
 - ps: |
       Execute-Action "uploading code coverage report" {
-          codecov -f coverage.xml
+          codecov.exe -f coverage.xml
       }
 
 - ps: |
@@ -128,7 +129,7 @@ after_test:
       }
 
 artifacts:
-  - path: artifacts\*.nupkg
+  - path: artifacts/*.nupkg
     name: NuGet
 
 deploy:
