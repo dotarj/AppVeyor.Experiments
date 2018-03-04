@@ -62,7 +62,7 @@ install:
 
 dotnet_csproj:
   patch: true
-  file: src/$(APPVEYOR_PROJECT_NAME)/$(APPVEYOR_PROJECT_NAME).csproj
+  file: src\$(APPVEYOR_PROJECT_NAME)\$(APPVEYOR_PROJECT_NAME).csproj
   version: $(RELEASE_VERSION)
 
 before_build:
