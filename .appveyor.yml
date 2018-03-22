@@ -10,6 +10,8 @@ environment:
     secure: U0tuEkqF1Ste7vfi3u+3WcyX1BbzgKbGyWmS7C6cckBIkEQoG/Vz/o+fj5GoTIaG
   SONARQUBE_GITHUB_TOKEN:
     secure: BDsQj141y1xsOMP0GKcD1HIATQaKmKujesZG0511KEfyRL4MLXGk5eZXENTXC7eo
+  APPVEYOR_RDP_PASSWORD:
+    secure: y8mE+sylpoA71erQL1SPDwNxF7by863s/pA9ohj5Vrw=
 
 image: Visual Studio 2017
 
@@ -74,11 +76,9 @@ before_build:
 - ps: |
       Execute-Action "beginning code analysis" {
           if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-              Write-Host "MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=**/*Tests.cs"
-              MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=**/*Tests.cs
+              MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=**/*Tests.cs /d:sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER /d:sonar.github.repository=$env:APPVEYOR_REPO_NAME /d:sonar.github.oauth=$env:SONARQUBE_GITHUB_TOKEN
           }
           else {
-              Write-Host "MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=**/*Tests.cs"
               MSBuild.SonarQube.Runner.exe begin /o:$env:SONARQUBE_ORGANIZATION /k:$env:APPVEYOR_PROJECT_NAME /v:$env:APPVEYOR_BUILD_VERSION /d:sonar.host.url=https://sonarcloud.io /d:sonar.login=$env:SONARQUBE_TOKEN /d:sonar.cs.opencover.reportsPaths=coverage.xml /d:sonar.coverage.exclusions=**/*Tests.cs
           }
       }
@@ -148,3 +148,6 @@ deploy:
   skip_symbols: false
   on:
     appveyor_repo_tag: true
+
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
