@@ -59,7 +59,7 @@ init:
 install:
 - ps: |
       Execute-Action "installing tools" {
-          choco install codecov msbuild-sonarqube-runner opencover.portable
+          choco install codecov mono msbuild-sonarqube-runner opencover.portable
       }
 
 dotnet_csproj:
@@ -109,7 +109,7 @@ after_build:
 test_script:
 - ps: |
       Execute-Action "running unit tests" {
-          & "${env:ProgramFiles(x86)}\Mono\bin\mono.exe” “$env:XUNIT20/xunit.console.x86.exe” “test/$env:APPVEYOR_PROJECT_NAME.Tests/bin/$env:CONFIGURATION/net471/$env:APPVEYOR_PROJECT_NAME.Tests.dll”
+          & "$env:ProgramFiles\Mono\bin\mono.exe” “$env:XUNIT20/xunit.console.exe” “test/$env:APPVEYOR_PROJECT_NAME.Tests/bin/$env:CONFIGURATION/net471/$env:APPVEYOR_PROJECT_NAME.Tests.dll”
       }
 
 after_test:
@@ -148,6 +148,3 @@ deploy:
   skip_symbols: false
   on:
     appveyor_repo_tag: true
-
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
