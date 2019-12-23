@@ -2,7 +2,7 @@ environment:
   VERIFY_STRONG_NAME: true
   MYGET_FEED_NAME: appveyor-experiments
   MYGET_API_KEY:
-    secure: AokfqnpAzmq0oo0qUsTHuZPuI5t4uFjlq6HKBKkatkQxvJV1YhDEtJHkV5VdMylM
+    secure: Plkeg8MYBrkJy/wR056qYzBd99XAbRGpcly9r61Ps+z2c96tJcVPpFeSiDjpKdYr
   NUGET_API_KEY:
     secure: wwo1Vge8nhIs4OcyAqjec13lSYtTkJXZTGdWqCyv8cMbH+rX+Jgb5seRd2blI7mT
   SONARQUBE_ORGANIZATION: dotarj-github
